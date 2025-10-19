@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Perf Monitor API stack
+Parameters:
+  VpcId:
+    Type: String
+  Subnets:
+    Type: List<AWS::EC2::Subnet::Id>
+  ClusterName:
+    Type: String
+    Default: perf-monitor-cluster
+  Image:
+    Type: String
+    Description: ECR image URI for API service
+  RedisUrl:
+    Type: String
+  DatabaseUrl:
+    Type: String
+Resources:
+  ApiService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref ClusterName
+      DesiredCount: 2
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets: !Ref Subnets
+      TaskDefinition: !Ref ApiTask
+  ApiTask:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Cpu: '512'
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities: [FARGATE]
+      ContainerDefinitions:
+        - Name: api
+          Image: !Ref Image
+          PortMappings:
+            - ContainerPort: 4000
+          Environment:
+            - Name: REDIS_URL
+              Value: !Ref RedisUrl
+            - Name: DATABASE_URL
+              Value: !Ref DatabaseUrl
+Outputs:
+  ServiceName:
+    Value: !Ref ApiService
+

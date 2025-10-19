@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Perf Monitor Workers stack
+Parameters:
+  ClusterName:
+    Type: String
+    Default: perf-monitor-cluster
+  Image:
+    Type: String
+    Description: ECR image URI for Workers
+  RedisUrl:
+    Type: String
+  DatabaseUrl:
+    Type: String
+Resources:
+  WorkersService:
+    Type: AWS::ECS::Service
+    Properties:
+      Cluster: !Ref ClusterName
+      DesiredCount: 1
+      LaunchType: FARGATE
+      TaskDefinition: !Ref WorkersTask
+  WorkersTask:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Cpu: '512'
+      Memory: '1024'
+      NetworkMode: awsvpc
+      RequiresCompatibilities: [FARGATE]
+      ContainerDefinitions:
+        - Name: workers
+          Image: !Ref Image
+          Environment:
+            - Name: REDIS_URL
+              Value: !Ref RedisUrl
+            - Name: DATABASE_URL
+              Value: !Ref DatabaseUrl
+Outputs:
+  ServiceName:
+    Value: !Ref WorkersService
+
