@@ -1,0 +1,31 @@
+# Source files
+src/
+tsconfig.json
+rollup.config.js
+
+# Development files
+*.log
+*.swp
+.DS_Store
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Testing
+coverage/
+.nyc_output/
+test/
+tests/
+__tests__/
+
+# Build artifacts that we don't want to publish
+node_modules/
+*.tsbuildinfo
+

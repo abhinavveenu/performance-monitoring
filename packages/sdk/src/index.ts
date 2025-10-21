@@ -55,11 +55,22 @@ class BeaconSender {
     if (this.queue.length === 0) return;
     const batch = this.queue.splice(0, this.config.maxBatchSize);
     const payload = JSON.stringify({ projectKey: this.config.projectKey, events: batch });
-    const blob = new Blob([payload], { type: 'application/json' });
-    const headers = { 'x-api-key': this.config.apiKey } as any;
-    if (!navigator.sendBeacon || !navigator.sendBeacon(this.config.endpoint + '/v1/ingest', blob)) {
-      fetch(this.config.endpoint + '/v1/ingest', { method: 'POST', body: blob, headers });
-    }
+    
+    // Use fetch with keepalive to support custom headers (x-api-key)
+    // sendBeacon doesn't support custom headers
+    fetch(this.config.endpoint + '/v1/ingest', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': this.config.apiKey
+      },
+      body: payload,
+      keepalive: true
+    }).catch((err) => {
+      if (typeof console !== 'undefined') {
+        console.error('Failed to send metrics:', err);
+      }
+    });
   }
 }
 

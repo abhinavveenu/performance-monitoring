@@ -2,6 +2,16 @@
 
 A production-ready web performance monitoring platform built with TimescaleDB, Bull queues, and Redis. Track Core Web Vitals (LCP, FID, CLS, INP, TTFB) across multiple websites, pages, devices, and browsers with time-series optimization.
 
+## SDK Package
+
+**📦 Published npm Package:** [perf-monitor-sdk](https://www.npmjs.com/package/perf-monitor-sdk)
+
+```bash
+npm install perf-monitor-sdk
+```
+
+Full SDK documentation: [packages/sdk/README.md](./packages/sdk/README.md)
+
 ## Features
 
 ### Core Capabilities

@@ -1,20 +1,54 @@
 {
-  "name": "@perf-monitor/sdk",
-  "version": "0.1.0",
-  "description": "Framework-agnostic performance monitoring SDK",
+  "name": "perf-monitor-sdk",
+  "version": "1.0.0",
+  "description": "Lightweight, framework-agnostic performance monitoring SDK for tracking Core Web Vitals and custom metrics",
+  "type": "module",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
+  "browser": "dist/index.umd.js",
   "types": "dist/index.d.ts",
   "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "build": "tsc -p tsconfig.json && rollup -c",
+    "build": "npm run clean && tsc -p tsconfig.json && rollup -c",
+    "clean": "rm -rf dist",
     "dev": "tsc -w -p tsconfig.json",
-    "lint": "eslint src --ext .ts",
+    "prepublishOnly": "npm run build",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
-  "keywords": ["performance", "web-vitals", "monitoring"],
-  "author": "",
+  "keywords": [
+    "performance",
+    "web-vitals",
+    "monitoring",
+    "analytics",
+    "core-web-vitals",
+    "lcp",
+    "fid",
+    "cls",
+    "inp",
+    "ttfb",
+    "rum",
+    "real-user-monitoring",
+    "observability",
+    "apm"
+  ],
+  "author": "Performance Monitoring Team",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/perf-monitor"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/perf-monitor/issues"
+  },
+  "homepage": "https://github.com/your-org/perf-monitor#readme",
   "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
   "dependencies": {
     "web-vitals": "^4.0.0"
   },
