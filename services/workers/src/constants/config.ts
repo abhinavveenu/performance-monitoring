@@ -7,6 +7,12 @@ export const CONFIG = {
   DATABASE_URL: process.env.DATABASE_URL || 'postgres://perf:perf@localhost:5432/perfdb',
 } as const;
 
+export const WORKER_CONFIG = {
+  METRICS_CONCURRENCY: parseInt(process.env.METRICS_CONCURRENCY || '5'),
+  ERRORS_CONCURRENCY: parseInt(process.env.ERRORS_CONCURRENCY || '2'),
+  DB_POOL_SIZE: parseInt(process.env.DB_POOL_SIZE || '10'),
+} as const;
+
 export const QUEUE_NAMES = {
   METRICS: 'metrics',
   ERRORS: 'errors',

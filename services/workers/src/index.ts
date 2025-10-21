@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import Bull from 'bull';
 import { Pool } from 'pg';
-import { CONFIG, QUEUE_NAMES } from './constants/config';
+import { CONFIG, QUEUE_NAMES, WORKER_CONFIG } from './constants/config';
 import { MetricsProcessor, ErrorsProcessor } from './processors';
 import { validateDatabaseSchema } from './utils/dbValidator';
 
@@ -17,7 +17,10 @@ const errorsQueue = new Bull(QUEUE_NAMES.ERRORS, CONFIG.REDIS_URL);
  * IMPORTANT: Database tables must be created BEFORE starting workers
  * Run: npm run init-db
  */
-const pool = new Pool({ connectionString: CONFIG.DATABASE_URL });
+const pool = new Pool({ 
+  connectionString: CONFIG.DATABASE_URL,
+  max: WORKER_CONFIG.DB_POOL_SIZE
+});
 
 /**
  * Initialize processors
@@ -31,23 +34,24 @@ const errorsProcessor = new ErrorsProcessor(pool);
  */
 async function bootstrap(): Promise<void> {
   console.log('Starting workers...');
-  console.log(`Metrics queue: ${QUEUE_NAMES.METRICS}`);
-  console.log(`Errors queue: ${QUEUE_NAMES.ERRORS}`);
+  console.log(`Metrics queue: ${QUEUE_NAMES.METRICS} (concurrency: ${WORKER_CONFIG.METRICS_CONCURRENCY})`);
+  console.log(`Errors queue: ${QUEUE_NAMES.ERRORS} (concurrency: ${WORKER_CONFIG.ERRORS_CONCURRENCY})`);
+  console.log(`Database pool size: ${WORKER_CONFIG.DB_POOL_SIZE}`);
   console.log(`Database: ${CONFIG.DATABASE_URL.split('@')[1] || 'configured'}`);
 
   // Validate database schema exists (fail-fast if not initialized)
   console.log('Validating database schema...');
   await validateDatabaseSchema(pool);
 
-  // Process metrics queue
-  metricsQueue.process(async (job) => {
+  // Process metrics queue with configured concurrency
+  metricsQueue.process(WORKER_CONFIG.METRICS_CONCURRENCY, async (job) => {
     console.log(`Processing metrics job ${job.id} for project: ${job.data.projectKey}`);
     await metricsProcessor.process(job);
     console.log(`Completed metrics job ${job.id}`);
   });
 
-  // Process errors queue
-  errorsQueue.process(async (job) => {
+  // Process errors queue with configured concurrency
+  errorsQueue.process(WORKER_CONFIG.ERRORS_CONCURRENCY, async (job) => {
     console.log(`Processing error job ${job.id} for project: ${job.data.projectKey}`);
     await errorsProcessor.process(job);
     console.log(`Completed error job ${job.id}`);

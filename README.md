@@ -53,7 +53,6 @@ cd services/workers && npm run init-db && cd ../..
 - Ingestion API: http://localhost:4000
 - Query API: http://localhost:4001
 
-See [RUNNING.md](./RUNNING.md) for detailed instructions.
 
 ## Architecture
 
@@ -300,6 +299,9 @@ Deploy to AWS with CloudFormation:
 - `REDIS_URL` - Redis connection string  
 - `PORT` - Ingestion API port (default: 4000)
 - `QUERY_PORT` - Query API port (default: 4001)
+- `METRICS_CONCURRENCY` - Number of concurrent metrics workers (default: 5)
+- `ERRORS_CONCURRENCY` - Number of concurrent error workers (default: 2)
+- `DB_POOL_SIZE` - Database connection pool size (default: 10)
 
 See [API.md](./API.md) for complete API documentation.
 

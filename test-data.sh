@@ -2,7 +2,7 @@
 
 # Test script to send sample data through the complete workflow
 
-echo "📊 Testing Performance Monitoring Dashboard"
+echo "Testing Performance Monitoring Dashboard"
 echo ""
 
 # Check if services are running
@@ -75,5 +75,5 @@ docker exec perfdashboard-postgres-1 psql -U perf -d perfdb -c "SELECT COUNT(*) 
 docker exec perfdashboard-postgres-1 psql -U perf -d perfdb -c "SELECT COUNT(*) FROM metrics;"
 
 echo ""
-echo "✅ Test complete!"
+echo "Test complete!"
 
