@@ -31,11 +31,41 @@ export function useDashboardData(
 
     try {
       const dashboardData = await fetchDashboardData(projectKey, timeRange, dimension);
+      
+      // Validate response data
+      if (!dashboardData) {
+        throw new Error('No data received from API');
+      }
+
+      if (!dashboardData.summary) {
+        console.warn('Missing summary data in response');
+      }
+
+      if (!dashboardData.timeseries || !Array.isArray(dashboardData.timeseries)) {
+        console.warn('Missing or invalid timeseries data in response');
+      }
+
       setData(dashboardData);
       setLastUpdate(new Date());
+      setError(null); // Clear any previous errors on success
     } catch (err) {
-      setError(err as Error);
-      console.error('Error fetching dashboard data:', err);
+      const error = err as Error;
+      console.error('Error fetching dashboard data:', error);
+      
+      // Create user-friendly error message
+      let errorMessage = error.message;
+      if (error.message.includes('Query API')) {
+        errorMessage = 'Unable to connect to the Query API. Please ensure the service is running.';
+      } else if (error.message.includes('timeout')) {
+        errorMessage = 'Request timed out. Please try again.';
+      } else if (error.message.includes('format')) {
+        errorMessage = 'Received invalid data format from server.';
+      }
+
+      setError(new Error(errorMessage));
+      
+      // Don't clear data on error - keep showing stale data
+      // This provides a better user experience
     } finally {
       setLoading(false);
     }

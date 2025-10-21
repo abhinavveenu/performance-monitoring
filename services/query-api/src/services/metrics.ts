@@ -34,16 +34,17 @@ export class MetricsService {
    * Get project metrics summary with caching
    */
   async getProjectSummary(projectKey: string, range: TimeRange): Promise<MetricsSummary> {
-    const cacheKey = this.cache.generateKey([
-      'project',
-      projectKey,
-      'summary',
-      range.from.toISOString(),
-      range.to.toISOString()
-    ]);
+    try {
+      const cacheKey = this.cache.generateKey([
+        'project',
+        projectKey,
+        'summary',
+        range.from.toISOString(),
+        range.to.toISOString()
+      ]);
 
-    return this.cache.cached(cacheKey, 60, async () => {
-      const result = await this.pool.query(
+      return await this.cache.cached(cacheKey, 60, async () => {
+        const result = await this.pool.query(
         `
         SELECT
           PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY lcp) FILTER (WHERE lcp IS NOT NULL) as lcp_p50,
@@ -116,6 +117,10 @@ export class MetricsService {
         totalSamples: parseInt(row.total_samples || 0),
       };
     });
+    } catch (error) {
+      console.error(`Error fetching project summary for ${projectKey}:`, error);
+      throw new Error(`Failed to fetch project summary: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
@@ -126,16 +131,17 @@ export class MetricsService {
     range: TimeRange,
     interval: string = '1 hour'
   ): Promise<TimeSeriesPoint[]> {
-    const cacheKey = this.cache.generateKey([
-      'project',
-      projectKey,
-      'timeseries',
-      interval,
-      range.from.toISOString(),
-      range.to.toISOString()
-    ]);
+    try {
+      const cacheKey = this.cache.generateKey([
+        'project',
+        projectKey,
+        'timeseries',
+        interval,
+        range.from.toISOString(),
+        range.to.toISOString()
+      ]);
 
-    return this.cache.cached(cacheKey, 60, async () => {
+      return await this.cache.cached(cacheKey, 60, async () => {
       const result = await this.pool.query(
         `
         SELECT
@@ -195,15 +201,20 @@ export class MetricsService {
         ttfb_p99: Math.round(row.ttfb_p99 || 0),
       }));
     });
+    } catch (error) {
+      console.error(`Error fetching time series for ${projectKey}:`, error);
+      throw new Error(`Failed to fetch time series: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
    * Get pages list for a project
    */
   async getProjectPages(projectKey: string, limit: number = 50) {
-    const cacheKey = this.cache.generateKey(['project', projectKey, 'pages', String(limit)]);
+    try {
+      const cacheKey = this.cache.generateKey(['project', projectKey, 'pages', String(limit)]);
 
-    return this.cache.cached(cacheKey, 120, async () => {
+      return await this.cache.cached(cacheKey, 120, async () => {
       const result = await this.pool.query(
         `
         SELECT
@@ -225,15 +236,20 @@ export class MetricsService {
         [projectKey, limit]
       );
 
-      return result.rows;
-    });
+        return result.rows;
+      });
+    } catch (error) {
+      console.error(`Error fetching pages for ${projectKey}:`, error);
+      throw new Error(`Failed to fetch pages: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
    * Get page metrics details
    */
   async getPageMetrics(pageId: number, range: TimeRange) {
-    const result = await this.pool.query(
+    try {
+      const result = await this.pool.query(
       `
       SELECT
         m.timestamp,
@@ -253,19 +269,24 @@ export class MetricsService {
       ORDER BY m.timestamp DESC
       LIMIT 1000
       `,
-      [pageId, range.from, range.to]
-    );
+        [pageId, range.from, range.to]
+      );
 
-    return result.rows;
+      return result.rows;
+    } catch (error) {
+      console.error(`Error fetching page metrics for page ${pageId}:`, error);
+      throw new Error(`Failed to fetch page metrics: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
    * Get slow pages for a project
    */
   async getSlowPages(projectKey: string, metric: string = 'lcp', limit: number = 10) {
-    const cacheKey = this.cache.generateKey(['project', projectKey, 'slow_pages', metric, String(limit)]);
+    try {
+      const cacheKey = this.cache.generateKey(['project', projectKey, 'slow_pages', metric, String(limit)]);
 
-    return this.cache.cached(cacheKey, 120, async () => {
+      return await this.cache.cached(cacheKey, 120, async () => {
       const metricColumn = ['lcp', 'fid', 'cls', 'inp', 'ttfb'].includes(metric) ? metric : 'lcp';
       
       const result = await this.pool.query(
@@ -290,15 +311,20 @@ export class MetricsService {
         [projectKey, limit]
       );
 
-      return result.rows;
-    });
+        return result.rows;
+      });
+    } catch (error) {
+      console.error(`Error fetching slow pages for ${projectKey}:`, error);
+      throw new Error(`Failed to fetch slow pages: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
    * Get session journey
    */
   async getSessionJourney(sessionId: string) {
-    const result = await this.pool.query(
+    try {
+      const result = await this.pool.query(
       `
       SELECT
         m.timestamp,
@@ -315,17 +341,22 @@ export class MetricsService {
       WHERE m.session_id = $1
       ORDER BY m.timestamp ASC
       `,
-      [sessionId]
-    );
+        [sessionId]
+      );
 
-    return result.rows;
+      return result.rows;
+    } catch (error) {
+      console.error(`Error fetching session journey for ${sessionId}:`, error);
+      throw new Error(`Failed to fetch session journey: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
    * Get session errors
    */
   async getSessionErrors(sessionId: string) {
-    const result = await this.pool.query(
+    try {
+      const result = await this.pool.query(
       `
       SELECT
         e.timestamp,
@@ -337,10 +368,14 @@ export class MetricsService {
       WHERE e.session_id = $1
       ORDER BY e.timestamp ASC
       `,
-      [sessionId]
-    );
+        [sessionId]
+      );
 
-    return result.rows;
+      return result.rows;
+    } catch (error) {
+      console.error(`Error fetching session errors for ${sessionId}:`, error);
+      throw new Error(`Failed to fetch session errors: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
@@ -351,16 +386,17 @@ export class MetricsService {
     dimension: 'device_type' | 'browser' | 'country',
     range: TimeRange
   ) {
-    const cacheKey = this.cache.generateKey([
-      'project',
-      projectKey,
-      'breakdown',
-      dimension,
-      range.from.toISOString(),
-      range.to.toISOString()
-    ]);
+    try {
+      const cacheKey = this.cache.generateKey([
+        'project',
+        projectKey,
+        'breakdown',
+        dimension,
+        range.from.toISOString(),
+        range.to.toISOString()
+      ]);
 
-    return this.cache.cached(cacheKey, 120, async () => {
+      return await this.cache.cached(cacheKey, 120, async () => {
       const result = await this.pool.query(
         `
         SELECT
@@ -381,8 +417,12 @@ export class MetricsService {
         [projectKey, range.from, range.to]
       );
 
-      return result.rows;
-    });
+        return result.rows;
+      });
+    } catch (error) {
+      console.error(`Error fetching breakdown for ${projectKey}:`, error);
+      throw new Error(`Failed to fetch breakdown: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 }
 

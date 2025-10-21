@@ -294,16 +294,24 @@ Deploy to AWS with CloudFormation:
 ./deploy.sh
 ```
 
-**Environment Variables:**
-- `DATABASE_URL` - PostgreSQL connection string
-- `REDIS_URL` - Redis connection string  
-- `PORT` - Ingestion API port (default: 4000)
-- `QUERY_PORT` - Query API port (default: 4001)
-- `METRICS_CONCURRENCY` - Number of concurrent metrics workers (default: 5)
-- `ERRORS_CONCURRENCY` - Number of concurrent error workers (default: 2)
-- `DB_POOL_SIZE` - Database connection pool size (default: 10)
+**Configuration:**
 
-See [API.md](./API.md) for complete API documentation.
+All URLs and settings are configurable via environment variables. See [CONFIG.md](./CONFIG.md) for comprehensive configuration guide.
+
+Quick reference:
+- `DATABASE_URL` - PostgreSQL connection string (default: `postgres://perf:perf@localhost:5432/perfdb`)
+- `REDIS_URL` - Redis connection string (default: `redis://127.0.0.1:6379`)
+- `PORT` - Ingestion API port (default: `4000`)
+- `QUERY_PORT` - Query API port (default: `4001`)
+- `VITE_QUERY_API_URL` - Dashboard API endpoint (default: `http://localhost:4001`)
+- `METRICS_CONCURRENCY` - Concurrent metrics workers (default: `5`)
+- `ERRORS_CONCURRENCY` - Concurrent error workers (default: `2`)
+- `DB_POOL_SIZE` - Database connection pool size (default: `10`)
+
+**Documentation:**
+- [CONFIG.md](./CONFIG.md) - Complete configuration guide
+- [API.md](./API.md) - API documentation
+- [ARCHITECTURE.md](./ARCHITECTURE.md) - System architecture
 
 ## Contributing
 

@@ -24,25 +24,65 @@ export async function fetchDashboardData(
   const interval = getTimeInterval(timeRange);
 
   try {
-    // Fetch all data in parallel
-    const [summaryRes, timeseriesRes, pagesRes, breakdownRes] = await Promise.all([
-      fetch(`${QUERY_API_URL}/api/projects/${projectKey}/metrics/summary?range=${timeRange}`),
-      fetch(`${QUERY_API_URL}/api/projects/${projectKey}/metrics/timeseries?range=${timeRange}&interval=${interval}`),
-      fetch(`${QUERY_API_URL}/api/projects/${projectKey}/pages?limit=10`),
-      fetch(`${QUERY_API_URL}/api/projects/${projectKey}/breakdown/${dimension}?range=${timeRange}`),
-    ]);
-
-    // Check for errors
-    if (!summaryRes.ok || !timeseriesRes.ok || !pagesRes.ok || !breakdownRes.ok) {
-      throw new Error('Failed to fetch dashboard data');
+    // Validate inputs
+    if (!projectKey) {
+      throw new Error('Project key is required');
     }
 
-    // Parse responses
+    if (!timeRange) {
+      throw new Error('Time range is required');
+    }
+
+    if (!dimension) {
+      throw new Error('Dimension is required');
+    }
+
+    // Fetch all data in parallel with timeout
+    const fetchWithTimeout = (url: string, timeout = 10000): Promise<Response> => {
+      return Promise.race([
+        fetch(url),
+        new Promise<Response>((_, reject) =>
+          setTimeout(() => reject(new Error('Request timeout')), timeout)
+        ),
+      ]);
+    };
+
+    const [summaryRes, timeseriesRes, pagesRes, breakdownRes] = await Promise.all([
+      fetchWithTimeout(`${QUERY_API_URL}/api/projects/${projectKey}/metrics/summary?range=${timeRange}`),
+      fetchWithTimeout(`${QUERY_API_URL}/api/projects/${projectKey}/metrics/timeseries?range=${timeRange}&interval=${interval}`),
+      fetchWithTimeout(`${QUERY_API_URL}/api/projects/${projectKey}/pages?limit=10`),
+      fetchWithTimeout(`${QUERY_API_URL}/api/projects/${projectKey}/breakdown/${dimension}?range=${timeRange}`),
+    ]);
+
+    // Check for errors with detailed messages
+    const errors: string[] = [];
+    if (!summaryRes.ok) errors.push(`Summary: ${summaryRes.status} ${summaryRes.statusText}`);
+    if (!timeseriesRes.ok) errors.push(`Timeseries: ${timeseriesRes.status} ${timeseriesRes.statusText}`);
+    if (!pagesRes.ok) errors.push(`Pages: ${pagesRes.status} ${pagesRes.statusText}`);
+    if (!breakdownRes.ok) errors.push(`Breakdown: ${breakdownRes.status} ${breakdownRes.statusText}`);
+
+    if (errors.length > 0) {
+      throw new Error(`Failed to fetch dashboard data: ${errors.join(', ')}`);
+    }
+
+    // Parse responses with error handling
     const [summary, timeseries, pages, breakdown] = await Promise.all([
-      summaryRes.json(),
-      timeseriesRes.json(),
-      pagesRes.json(),
-      breakdownRes.json(),
+      summaryRes.json().catch(err => {
+        console.error('Failed to parse summary response:', err);
+        throw new Error('Invalid summary data format');
+      }),
+      timeseriesRes.json().catch(err => {
+        console.error('Failed to parse timeseries response:', err);
+        throw new Error('Invalid timeseries data format');
+      }),
+      pagesRes.json().catch(err => {
+        console.error('Failed to parse pages response:', err);
+        throw new Error('Invalid pages data format');
+      }),
+      breakdownRes.json().catch(err => {
+        console.error('Failed to parse breakdown response:', err);
+        throw new Error('Invalid breakdown data format');
+      }),
     ]);
 
     return {
@@ -52,6 +92,11 @@ export async function fetchDashboardData(
       breakdown,
     };
   } catch (error) {
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      console.error('Network error - Query API may be down:', error);
+      throw new Error('Unable to connect to Query API. Please check if the service is running.');
+    }
+    
     console.error('Error fetching dashboard data:', error);
     throw error;
   }

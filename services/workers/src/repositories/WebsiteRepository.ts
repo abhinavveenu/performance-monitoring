@@ -9,12 +9,17 @@ export class WebsiteRepository {
     client: PoolClient,
     projectKey: string
   ): Promise<Website | null> {
-    const result = await client.query<Website>(
-      'SELECT id, project_key, name, domain, created_at FROM websites WHERE project_key = $1',
-      [projectKey]
-    );
+    try {
+      const result = await client.query<Website>(
+        'SELECT id, project_key, name, domain, created_at FROM websites WHERE project_key = $1',
+        [projectKey]
+      );
 
-    return result.rows[0] || null;
+      return result.rows[0] || null;
+    } catch (error) {
+      console.error(`Error fetching website by project key ${projectKey}:`, error);
+      throw new Error(`Failed to fetch website: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
@@ -26,15 +31,24 @@ export class WebsiteRepository {
     name: string,
     domain: string
   ): Promise<Website> {
-    const result = await client.query<Website>(
-      `INSERT INTO websites (project_key, name, domain) 
-       VALUES ($1, $2, $3) 
-       ON CONFLICT (project_key) DO UPDATE SET domain = EXCLUDED.domain
-       RETURNING id, project_key, name, domain, created_at`,
-      [projectKey, name, domain]
-    );
+    try {
+      const result = await client.query<Website>(
+        `INSERT INTO websites (project_key, name, domain) 
+         VALUES ($1, $2, $3) 
+         ON CONFLICT (project_key) DO UPDATE SET domain = EXCLUDED.domain
+         RETURNING id, project_key, name, domain, created_at`,
+        [projectKey, name, domain]
+      );
 
-    return result.rows[0];
+      if (!result.rows[0]) {
+        throw new Error('No website returned from upsert');
+      }
+
+      return result.rows[0];
+    } catch (error) {
+      console.error(`Error upserting website ${projectKey}:`, error);
+      throw new Error(`Failed to upsert website: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
@@ -44,12 +58,17 @@ export class WebsiteRepository {
     client: PoolClient,
     projectKey: string
   ): Promise<number | null> {
-    const result = await client.query<{ id: number }>(
-      'SELECT id FROM websites WHERE project_key = $1',
-      [projectKey]
-    );
+    try {
+      const result = await client.query<{ id: number }>(
+        'SELECT id FROM websites WHERE project_key = $1',
+        [projectKey]
+      );
 
-    return result.rows[0]?.id || null;
+      return result.rows[0]?.id || null;
+    } catch (error) {
+      console.error(`Error fetching website ID for project ${projectKey}:`, error);
+      throw new Error(`Failed to fetch website ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 }
 

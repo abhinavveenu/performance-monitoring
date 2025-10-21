@@ -19,7 +19,7 @@ export const App: React.FC = () => {
   const [selectedPercentile, setSelectedPercentile] = useState<string>(Percentile.P95);
   const [selectedDimension, setSelectedDimension] = useState<string>(BreakdownDimension.DEVICE_TYPE);
 
-  const { data, loading, lastUpdate } = useDashboardData(projectKey, timeRange, selectedDimension);
+  const { data, loading, error, lastUpdate } = useDashboardData(projectKey, timeRange, selectedDimension);
 
   return (
     <div
@@ -37,6 +37,22 @@ export const App: React.FC = () => {
         onProjectChange={setProjectKey}
         onTimeRangeChange={setTimeRange}
       />
+
+      {/* Error Banner */}
+      {error && (
+        <div
+          style={{
+            margin: `${theme.spacing.md} ${theme.spacing.xl}`,
+            padding: theme.spacing.md,
+            background: '#fee',
+            border: '1px solid #fcc',
+            borderRadius: theme.borderRadius.md,
+            color: '#c33',
+          }}
+        >
+          <strong>Error:</strong> {error.message}
+        </div>
+      )}
 
       {loading && !data ? (
         <LoadingState />

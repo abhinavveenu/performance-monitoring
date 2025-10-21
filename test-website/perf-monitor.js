@@ -4,7 +4,8 @@
 (function() {
     'use strict';
 
-    const CONFIG = {
+    // Load configuration from window.PERF_MONITOR_CONFIG or use defaults
+    const CONFIG = window.PERF_MONITOR_CONFIG || {
         apiUrl: 'http://localhost:4000/v1/ingest',
         apiKey: 'test-key',
         projectKey: 'demo',

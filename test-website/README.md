@@ -43,6 +43,41 @@ php -S localhost:8080
 
 Then open: http://localhost:8080
 
+## Configuration
+
+The test website uses a configuration file to connect to the Performance Monitoring API.
+
+### config.js
+
+Edit `config.js` to customize the SDK configuration:
+
+```javascript
+window.PERF_MONITOR_CONFIG = {
+    // API endpoint for sending metrics
+    apiUrl: 'http://localhost:4000/v1/ingest',
+    
+    // API key for authentication
+    apiKey: 'test-key',
+    
+    // Project identifier
+    projectKey: 'demo',
+    
+    // Batch size before auto-flush
+    batchSize: 10,
+    
+    // Flush interval in milliseconds
+    flushInterval: 5000,
+};
+```
+
+### Configuration Options
+
+- **apiUrl**: The URL of your Ingestion API (default: `http://localhost:4000/v1/ingest`)
+- **apiKey**: API key for authentication (default: `test-key`)
+- **projectKey**: Unique identifier for your project (default: `demo`)
+- **batchSize**: Number of events to batch before sending (default: `10`)
+- **flushInterval**: Time in milliseconds between automatic flushes (default: `5000`)
+
 ## Generating Metrics
 
 1. Make sure your Performance Monitoring services are running:
@@ -50,16 +85,22 @@ Then open: http://localhost:8080
    ./start-all.sh
    ```
 
-2. Open the test website in your browser
-3. Navigate between pages (Home, About, Gallery)
-4. Click buttons and interact with elements
-5. Scroll through the page
-6. Load more images on the Gallery page
+2. Configure the test website (edit `config.js` if needed)
+
+3. Open the test website in your browser
+
+4. Navigate between pages (Home, About, Gallery)
+
+5. Click buttons and interact with elements
+
+6. Scroll through the page
+
+7. Load more images on the Gallery page
 
 The SDK will automatically:
 - Collect Core Web Vitals (LCP, FID, CLS, INP, TTFB)
 - Batch events every 5 seconds or 10 events
-- Send metrics to the Ingestion API
+- Send metrics to the configured Ingestion API
 - Add device type, browser, and session information
 
 ## Viewing Metrics

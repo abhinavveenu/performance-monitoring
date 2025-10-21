@@ -13,7 +13,23 @@ export class MetricsProcessor {
   async process(job: Job<MetricsJobData>): Promise<void> {
     const { projectKey, events } = job.data;
 
-    const client = await this.pool.connect();
+    // Validate input
+    if (!projectKey) {
+      throw new Error('Missing projectKey in job data');
+    }
+
+    if (!events || !Array.isArray(events) || events.length === 0) {
+      console.warn(`No events to process for project ${projectKey}`);
+      return;
+    }
+
+    let client;
+    try {
+      client = await this.pool.connect();
+    } catch (error) {
+      console.error('Failed to acquire database connection:', error);
+      throw new Error(`Database connection error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
     
     try {
       await client.query('BEGIN');
@@ -26,16 +42,25 @@ export class MetricsProcessor {
 
       // Process each page's metrics
       for (const [pageUrl, data] of pageMetrics) {
-        await this.processPageMetrics(client, websiteId, pageUrl, data);
+        try {
+          await this.processPageMetrics(client, websiteId, pageUrl, data);
+        } catch (error) {
+          console.error(`Error processing metrics for page ${pageUrl}:`, error);
+          // Continue processing other pages
+        }
       }
 
       await client.query('COMMIT');
     } catch (error) {
-      await client.query('ROLLBACK');
+      await client.query('ROLLBACK').catch(rollbackErr => {
+        console.error('Error during rollback:', rollbackErr);
+      });
       console.error('Error processing metrics:', error);
       throw error;
     } finally {
-      client.release();
+      if (client) {
+        client.release();
+      }
     }
   }
 

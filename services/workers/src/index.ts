@@ -22,6 +22,11 @@ const pool = new Pool({
   max: WORKER_CONFIG.DB_POOL_SIZE
 });
 
+// Handle pool errors
+pool.on('error', (err) => {
+  console.error('Unexpected database pool error:', err);
+});
+
 /**
  * Initialize processors
  * These processors ONLY insert/update data - they do NOT create tables
@@ -39,9 +44,24 @@ async function bootstrap(): Promise<void> {
   console.log(`Database pool size: ${WORKER_CONFIG.DB_POOL_SIZE}`);
   console.log(`Database: ${CONFIG.DATABASE_URL.split('@')[1] || 'configured'}`);
 
+  // Test database connection
+  try {
+    const client = await pool.connect();
+    console.log('Database connection successful');
+    client.release();
+  } catch (error) {
+    console.error('Failed to connect to database:', error);
+    throw new Error('Database connection failed. Please check DATABASE_URL and ensure PostgreSQL is running.');
+  }
+
   // Validate database schema exists (fail-fast if not initialized)
   console.log('Validating database schema...');
-  await validateDatabaseSchema(pool);
+  try {
+    await validateDatabaseSchema(pool);
+  } catch (error) {
+    console.error('Database schema validation failed:', error);
+    throw new Error('Database schema not initialized. Please run: npm run init-db');
+  }
 
   // Process metrics queue with configured concurrency
   metricsQueue.process(WORKER_CONFIG.METRICS_CONCURRENCY, async (job) => {

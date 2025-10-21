@@ -13,7 +13,22 @@ export class ErrorsProcessor {
   async process(job: Job<ErrorJobData>): Promise<void> {
     const { projectKey, error, page, sessionId, timestamp, userAgent, deviceType, browser, country } = job.data;
 
-    const client = await this.pool.connect();
+    // Validate input
+    if (!projectKey) {
+      throw new Error('Missing projectKey in job data');
+    }
+
+    if (!page) {
+      throw new Error('Missing page URL in job data');
+    }
+
+    let client;
+    try {
+      client = await this.pool.connect();
+    } catch (err) {
+      console.error('Failed to acquire database connection:', err);
+      throw new Error(`Database connection error: ${err instanceof Error ? err.message : 'Unknown error'}`);
+    }
     
     try {
       await client.query('BEGIN');
@@ -23,6 +38,7 @@ export class ErrorsProcessor {
 
       if (!websiteId) {
         // Skip if website doesn't exist
+        console.warn(`Website not found for project ${projectKey}, skipping error`);
         await client.query('ROLLBACK');
         return;
       }
@@ -48,12 +64,16 @@ export class ErrorsProcessor {
       await ErrorRepository.insert(client, errorRecord);
 
       await client.query('COMMIT');
-    } catch (error) {
-      await client.query('ROLLBACK');
-      console.error('Error processing error event:', error);
-      throw error;
+    } catch (err) {
+      await client.query('ROLLBACK').catch(rollbackErr => {
+        console.error('Error during rollback:', rollbackErr);
+      });
+      console.error('Error processing error event:', err);
+      throw err;
     } finally {
-      client.release();
+      if (client) {
+        client.release();
+      }
     }
   }
 

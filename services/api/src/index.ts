@@ -29,7 +29,15 @@ app.use(morgan(CONFIG.NODE_ENV === 'production' ? 'combined' : 'dev'));
 /**
  * Initialize services
  */
-const queueService = new QueueService(CONFIG.REDIS_URL);
+let queueService: QueueService;
+try {
+  queueService = new QueueService(CONFIG.REDIS_URL);
+  console.log('Queue service initialized successfully');
+} catch (error) {
+  console.error('Failed to initialize queue service:', error);
+  console.error('Please ensure Redis is running and REDIS_URL is correct');
+  process.exit(1);
+}
 
 /**
  * Public routes (no auth)
@@ -61,7 +69,22 @@ app.use((_req, res) => {
  */
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('Unhandled error:', err);
-  res.status(500).json({ error: 'Internal server error' });
+  
+  // Check if response already sent
+  if (res.headersSent) {
+    return;
+  }
+
+  // Determine status code
+  const statusCode = (err as any).status || (err as any).statusCode || 500;
+  const message = CONFIG.NODE_ENV === 'production' 
+    ? 'Internal server error' 
+    : err.message || 'Internal server error';
+
+  res.status(statusCode).json({ 
+    error: message,
+    ...(CONFIG.NODE_ENV !== 'production' && { stack: err.stack }),
+  });
 });
 
 /**
@@ -82,9 +105,31 @@ process.on('SIGINT', async () => {
 /**
  * Start server
  */
-app.listen(CONFIG.PORT, () => {
+const server = app.listen(CONFIG.PORT, () => {
   console.log(`Ingestion API listening on :${CONFIG.PORT}`);
   console.log(`Environment: ${CONFIG.NODE_ENV}`);
   console.log(`Redis: ${CONFIG.REDIS_URL}`);
+});
+
+// Handle server errors
+server.on('error', (error: NodeJS.ErrnoException) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(`Port ${CONFIG.PORT} is already in use`);
+  } else {
+    console.error('Server error:', error);
+  }
+  process.exit(1);
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  // Give time to flush logs before exiting
+  setTimeout(() => process.exit(1), 1000);
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
