@@ -4,7 +4,7 @@ A production-ready web performance monitoring platform built with TimescaleDB, B
 
 ## SDK Package
 
-**📦 Published npm Package:** [perf-monitor-sdk](https://www.npmjs.com/package/perf-monitor-sdk)
+**Published npm Package:** [perf-monitor-sdk](https://www.npmjs.com/package/perf-monitor-sdk)
 
 ```bash
 npm install perf-monitor-sdk
@@ -63,7 +63,6 @@ cd services/workers && npm run init-db && cd ../..
 - Ingestion API: http://localhost:4000
 - Query API: http://localhost:4001
 
-
 ## Architecture
 
 ```
@@ -100,78 +99,6 @@ Dashboard (5173) ← Query API (4001) ← Redis Cache ←───────�
 - `services/workers` - Bull queue processors for metrics & alerts
 - `apps/dashboard` - React dashboard with Recharts (integrated with Query API)
 - `infra/cloudformation` - AWS deployment templates
-
-## Development
-
-**Build SDK:**
-```bash
-cd packages/sdk && npm run build
-```
-
-**Initialize/Reset Database:**
-```bash
-cd services/workers && npm run init-db
-```
-
-**Test the APIs:**
-```bash
-# Test ingestion API
-curl -X POST http://localhost:4000/v1/ingest \
-  -H "x-api-key: test-key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "projectKey": "test-website",
-    "events": [{
-      "type": "web_vital",
-      "name": "LCP",
-      "value": 2500,
-      "ts": '$(date +%s000)',
-      "page": "https://example.com/home",
-      "sessionId": "session-123",
-      "data": {"deviceType": "mobile", "browser": "Chrome"}
-    }]
-  }'
-
-# Query metrics (wait a few seconds for workers to process)
-curl "http://localhost:4001/api/projects/test-website/metrics/summary?range=24h"
-```
-
-**View Logs:**
-```bash
-tail -f /tmp/perf-api.log
-tail -f /tmp/perf-query-api.log
-tail -f /tmp/perf-workers.log
-tail -f /tmp/perf-dashboard.log
-```
-
-**Direct Database Access:**
-```bash
-docker exec -it perf-dashboard-postgres-1 psql -U perf -d perfdb
-```
-
-**Useful Queries:**
-```sql
--- View all websites
-SELECT * FROM websites;
-
--- View metrics for a specific website
-SELECT w.name, p.path, m.* 
-FROM metrics m
-JOIN websites w ON m.website_id = w.id
-JOIN pages p ON m.page_id = p.id
-WHERE w.project_key = 'your-project-key'
-ORDER BY m.timestamp DESC
-LIMIT 100;
-
--- Average metrics by device type
-SELECT device_type, 
-       AVG(lcp) as avg_lcp,
-       AVG(fid) as avg_fid,
-       AVG(cls) as avg_cls
-FROM metrics
-WHERE timestamp > NOW() - INTERVAL '24 hours'
-GROUP BY device_type;
-```
 
 ## Query API Endpoints
 
@@ -297,38 +224,11 @@ country          TEXT
 session_id       TEXT
 ```
 
-## Deployment
-
-Deploy to AWS with CloudFormation:
-```bash
-./deploy.sh
-```
-
-**Configuration:**
+## Configuration
 
 All URLs and settings are configurable via environment variables. See [CONFIG.md](./CONFIG.md) for comprehensive configuration guide.
-
-Quick reference:
-- `DATABASE_URL` - PostgreSQL connection string (default: `postgres://perf:perf@localhost:5432/perfdb`)
-- `REDIS_URL` - Redis connection string (default: `redis://127.0.0.1:6379`)
-- `PORT` - Ingestion API port (default: `4000`)
-- `QUERY_PORT` - Query API port (default: `4001`)
-- `VITE_QUERY_API_URL` - Dashboard API endpoint (default: `http://localhost:4001`)
-- `METRICS_CONCURRENCY` - Concurrent metrics workers (default: `5`)
-- `ERRORS_CONCURRENCY` - Concurrent error workers (default: `2`)
-- `DB_POOL_SIZE` - Database connection pool size (default: `10`)
-
-**Documentation:**
-- [CONFIG.md](./CONFIG.md) - Complete configuration guide
-- [API.md](./API.md) - API documentation
-- [ARCHITECTURE.md](./ARCHITECTURE.md) - System architecture
-
-## Contributing
-
-Contributions welcome! Please open an issue or PR.
 
 ## License
 
 MIT
-
 

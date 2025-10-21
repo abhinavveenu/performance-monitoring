@@ -1,24 +1,18 @@
 # perf-monitor-sdk
 
-[![npm version](https://img.shields.io/npm/v/perf-monitor-sdk.svg)](https://www.npmjs.com/package/perf-monitor-sdk)
-[![npm downloads](https://img.shields.io/npm/dm/perf-monitor-sdk.svg)](https://www.npmjs.com/package/perf-monitor-sdk)
-[![license](https://img.shields.io/npm/l/perf-monitor-sdk.svg)](https://github.com/your-org/perf-monitor/blob/main/LICENSE)
-
 Lightweight, framework-agnostic performance monitoring SDK for tracking Core Web Vitals and custom metrics.
-
-**[View on npm](https://www.npmjs.com/package/perf-monitor-sdk)**
 
 ## Features
 
-- **Core Web Vitals**: Automatic tracking of LCP, FID, CLS, INP, and TTFB
--  **Session Management**: Built-in session tracking
--  **Tiny Bundle**: < 5KB gzipped
--  **Framework Agnostic**: Works with any JavaScript framework or vanilla JS
--  **Performance First**: Zero impact on your site's performance
--  **Privacy Focused**: GDPR compliant, no PII collected
--  **Configurable**: Sampling, error tracking, resource timing
--  **Batching**: Efficient batching of metrics
--  **TypeScript**: Full TypeScript support
+- Core Web Vitals: Automatic tracking of LCP, FID, CLS, INP, and TTFB
+- Session Management: Built-in session tracking
+- Tiny Bundle: < 5KB gzipped
+- Framework Agnostic: Works with any JavaScript framework or vanilla JS
+- Performance First: Zero impact on your site's performance
+- Privacy Focused: GDPR compliant, no PII collected
+- Configurable: Sampling, error tracking, resource timing
+- Batching: Efficient batching of metrics
+- TypeScript: Full TypeScript support
 
 ## Installation
 
@@ -305,7 +299,7 @@ The SDK is designed with privacy in mind:
 
 ## Performance Impact
 
-The SDK is designed to have **zero impact** on your site's performance:
+The SDK is designed to have zero impact on your site's performance:
 
 - Loads asynchronously
 - Uses `web-vitals` library (Google's official library)
@@ -367,11 +361,11 @@ const monitor = PerfMonitor.instance;
 
 ### Metrics not appearing?
 
-1. **Check API endpoint**: Ensure your endpoint is correct and accessible
-2. **Check API key**: Verify your API key is valid
-3. **Check browser console**: Look for error messages
-4. **Check network tab**: Verify requests are being sent
-5. **Wait for flush**: Metrics are batched and sent every 5 seconds by default
+1. Check API endpoint: Ensure your endpoint is correct and accessible
+2. Check API key: Verify your API key is valid
+3. Check browser console: Look for error messages
+4. Check network tab: Verify requests are being sent
+5. Wait for flush: Metrics are batched and sent every 5 seconds by default
 
 ### CORS errors?
 
@@ -394,32 +388,7 @@ Make sure you have TypeScript definitions:
 npm install --save-dev @types/node
 ```
 
-## Examples
-
-See the [examples directory](https://github.com/your-org/perf-monitor/tree/main/examples) for complete integration examples:
-
-- React + Vite
-- Next.js
-- Vue 3
-- Vanilla JavaScript
-- Node.js SSR
-
-## Contributing
-
-Contributions welcome! Please see [CONTRIBUTING.md](https://github.com/your-org/perf-monitor/blob/main/CONTRIBUTING.md)
-
 ## License
 
-MIT © Performance Monitoring Team
-
-## Support
-
-- [Documentation](https://github.com/your-org/perf-monitor#readme)
-- [Issue Tracker](https://github.com/your-org/perf-monitor/issues)
-- [Discussions](https://github.com/your-org/perf-monitor/discussions)
-
-## Related
-
-- [web-vitals](https://github.com/GoogleChrome/web-vitals) - Google's Core Web Vitals library
-- [Performance Monitoring Dashboard](https://github.com/your-org/perf-monitor) - Full dashboard for visualizing metrics
+MIT
 
