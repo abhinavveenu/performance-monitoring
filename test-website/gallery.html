@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Website - Gallery</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="perf-monitor.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1>Test Website</h1>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html">About</a></li>
+                <li><a href="gallery.html" class="active">Gallery</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="hero" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+        <div class="container">
+            <h2>Photo Gallery</h2>
+            <p>Browse our collection of beautiful images</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="full-width">
+            <h3>Image Gallery</h3>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
+
+            <div class="gallery-grid">
+                <div class="gallery-item">
+                    <img src="https://picsum.photos/400/300?random=20" alt="Gallery image 1" loading="lazy">
+                    <p>Beautiful Landscape</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://picsum.photos/400/300?random=21" alt="Gallery image 2" loading="lazy">
+                    <p>City Skyline</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://picsum.photos/400/300?random=22" alt="Gallery image 3" loading="lazy">
+                    <p>Nature Scene</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://picsum.photos/400/300?random=23" alt="Gallery image 4" loading="lazy">
+                    <p>Mountain View</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://picsum.photos/400/300?random=24" alt="Gallery image 5" loading="lazy">
+                    <p>Ocean Waves</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://picsum.photos/400/300?random=25" alt="Gallery image 6" loading="lazy">
+                    <p>Forest Path</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://picsum.photos/400/300?random=26" alt="Gallery image 7" loading="lazy">
+                    <p>Desert Sunset</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://picsum.photos/400/300?random=27" alt="Gallery image 8" loading="lazy">
+                    <p>Urban Architecture</p>
+                </div>
+                <div class="gallery-item">
+                    <img src="https://picsum.photos/400/300?random=28" alt="Gallery image 9" loading="lazy">
+                    <p>Wildlife Photography</p>
+                </div>
+            </div>
+
+            <div class="load-more">
+                <button onclick="loadMoreImages()">Load More Images</button>
+            </div>
+
+            <h3>Gallery Description</h3>
+            <p>Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+
+            <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.</p>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Test Website. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        function loadMoreImages() {
+            const gallery = document.querySelector('.gallery-grid');
+            const loadMoreBtn = document.querySelector('.load-more button');
+            
+            loadMoreBtn.textContent = 'Loading...';
+            loadMoreBtn.disabled = true;
+            
+            // Simulate loading delay
+            setTimeout(() => {
+                for (let i = 0; i < 6; i++) {
+                    const item = document.createElement('div');
+                    item.className = 'gallery-item';
+                    item.innerHTML = `
+                        <img src="https://picsum.photos/400/300?random=${Math.random()}" alt="Gallery image" loading="lazy">
+                        <p>New Image ${i + 1}</p>
+                    `;
+                    gallery.appendChild(item);
+                }
+                loadMoreBtn.textContent = 'Load More Images';
+                loadMoreBtn.disabled = false;
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
+

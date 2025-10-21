@@ -4,90 +4,87 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
-import rateLimit from 'express-rate-limit';
-import Redis from 'ioredis';
-import Joi from 'joi';
-import Bull from 'bull';
+import { CONFIG, LIMITS } from './constants/config';
+import { authMiddleware, rateLimitMiddleware } from './middleware';
+import { QueueService } from './services/QueueService';
+import healthRouter from './routes/health';
+import { createIngestRouter } from './routes/ingest';
+import { createErrorsRouter } from './routes/errors';
+import lighthouseRouter from './routes/lighthouse';
 
+/**
+ * Initialize Express app
+ */
 const app = express();
+
+/**
+ * Apply middleware
+ */
 app.use(helmet());
 app.use(cors());
 app.use(compression());
-app.use(express.json({ limit: '2mb' }));
-app.use(morgan('combined'));
+app.use(express.json({ limit: LIMITS.JSON_BODY_SIZE }));
+app.use(morgan(CONFIG.NODE_ENV === 'production' ? 'combined' : 'dev'));
 
-const PORT = process.env.PORT || 4000;
-const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
-const redis = new Redis(REDIS_URL);
+/**
+ * Initialize services
+ */
+const queueService = new QueueService(CONFIG.REDIS_URL);
 
-// queues
-const metricsQueue = new Bull('metrics', REDIS_URL);
-const errorsQueue = new Bull('errors', REDIS_URL);
+/**
+ * Public routes (no auth)
+ */
+app.use('/v1', healthRouter);
 
-// auth middleware
-app.use((req, res, next) => {
-  const apiKey = req.header('x-api-key');
-  if (!apiKey) return res.status(401).json({ error: 'Missing API key' });
-  // TODO: verify apiKey against DB; for scaffold accept any non-empty
-  (req as any).projectKey = (req.body && req.body.projectKey) || req.query.projectKey;
-  next();
+/**
+ * Protected routes (require auth)
+ */
+app.use(authMiddleware);
+app.use(rateLimitMiddleware);
+
+/**
+ * API routes
+ */
+app.use('/v1', createIngestRouter(queueService));
+app.use('/v1', createErrorsRouter(queueService));
+app.use('/v1', lighthouseRouter);
+
+/**
+ * 404 handler
+ */
+app.use((_req, res) => {
+  res.status(404).json({ error: 'Not found' });
 });
 
-// rate limit per project key
-const limiter = rateLimit({
-  windowMs: 60 * 1000,
-  limit: 10000,
-  keyGenerator: (req) => ((req as any).projectKey || req.ip),
-});
-app.use(limiter);
-
-// validation schemas
-const ingestSchema = Joi.object({
-  projectKey: Joi.string().required(),
-  events: Joi.array().items(
-    Joi.object({
-      type: Joi.string().valid('web_vital', 'resource', 'error').required(),
-      name: Joi.string().required(),
-      value: Joi.number().optional(),
-      data: Joi.any().optional(),
-      ts: Joi.number().required(),
-      page: Joi.string().required(),
-      sessionId: Joi.string().required(),
-    })
-  ).max(1000).required(),
-}).required();
-
-app.get('/v1/health', (_req, res) => {
-  res.json({ status: 'ok' });
+/**
+ * Error handler
+ */
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: 'Internal server error' });
 });
 
-app.post('/v1/ingest', async (req, res) => {
-  const { error, value } = ingestSchema.validate(req.body, { abortEarly: false, allowUnknown: true });
-  if (error) return res.status(400).json({ error: error.details.map((d) => d.message) });
-  try {
-    await metricsQueue.add(value, { removeOnComplete: true, removeOnFail: true });
-    return res.status(202).json({ accepted: true });
-  } catch (e) {
-    return res.status(500).json({ error: 'Queueing failed' });
-  }
+/**
+ * Graceful shutdown
+ */
+process.on('SIGTERM', async () => {
+  console.log('Received SIGTERM, shutting down gracefully...');
+  await queueService.close();
+  process.exit(0);
 });
 
-app.post('/v1/errors', async (req, res) => {
-  try {
-    await errorsQueue.add(req.body, { removeOnComplete: true, removeOnFail: true });
-    return res.status(202).json({ accepted: true });
-  } catch (e) {
-    return res.status(500).json({ error: 'Queueing failed' });
-  }
+process.on('SIGINT', async () => {
+  console.log('Received SIGINT, shutting down gracefully...');
+  await queueService.close();
+  process.exit(0);
 });
 
-// lighthouse webhook placeholder
-app.post('/v1/lighthouse', (req, res) => {
-  res.status(202).json({ accepted: true });
+/**
+ * Start server
+ */
+app.listen(CONFIG.PORT, () => {
+  console.log(`Ingestion API listening on :${CONFIG.PORT}`);
+  console.log(`Environment: ${CONFIG.NODE_ENV}`);
+  console.log(`Redis: ${CONFIG.REDIS_URL}`);
 });
-
-app.listen(PORT, () => {
-  console.log(`API listening on :${PORT}`);
-});
-
 

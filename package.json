@@ -2,7 +2,7 @@
   "name": "perf-dashboard-monorepo",
   "private": true,
   "version": "0.1.0",
-  "description": "Monorepo for Performance Monitoring Dashboard (SDK, API, Workers, WebSocket, Dashboard, Infra)",
+  "description": "Monorepo for Performance Monitoring Dashboard (SDK, API, Workers, Dashboard, Infra)",
   "license": "MIT",
   "workspaces": [
     "packages/*",

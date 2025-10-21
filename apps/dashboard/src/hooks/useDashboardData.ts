@@ -1,0 +1,64 @@
+import { useState, useEffect, useCallback } from 'react';
+import { fetchDashboardData, type DashboardData } from '../services/api';
+import { API_CONFIG } from '../constants/config';
+
+interface UseDashboardDataResult {
+  data: DashboardData | null;
+  loading: boolean;
+  error: Error | null;
+  lastUpdate: Date;
+  refetch: () => Promise<void>;
+}
+
+/**
+ * Custom hook for fetching and managing dashboard data
+ */
+export function useDashboardData(
+  projectKey: string,
+  timeRange: string,
+  dimension: string
+): UseDashboardDataResult {
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+
+  const { REFRESH_INTERVAL } = API_CONFIG;
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const dashboardData = await fetchDashboardData(projectKey, timeRange, dimension);
+      setData(dashboardData);
+      setLastUpdate(new Date());
+    } catch (err) {
+      setError(err as Error);
+      console.error('Error fetching dashboard data:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [projectKey, timeRange, dimension]);
+
+  // Fetch data on mount and when dependencies change
+  useEffect(() => {
+    fetchData();
+
+    // Set up auto-refresh interval
+    const intervalId = setInterval(fetchData, REFRESH_INTERVAL);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, [fetchData, REFRESH_INTERVAL]);
+
+  return {
+    data,
+    loading,
+    error,
+    lastUpdate,
+    refetch: fetchData,
+  };
+}
+

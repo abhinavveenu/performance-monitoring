@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Website - About</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="perf-monitor.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1>Test Website</h1>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="about.html" class="active">About</a></li>
+                <li><a href="gallery.html">Gallery</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <header class="hero" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="container">
+            <h2>About Our Test Website</h2>
+            <p>Learn more about this performance testing project</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="content">
+            <h3>Our Mission</h3>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Vivamus sagittis lacus vel augue laoreet rutrum faucibus dolor auctor.</p>
+
+            <div class="image-grid">
+                <img src="https://picsum.photos/400/300?random=3" alt="Team photo" loading="lazy">
+            </div>
+
+            <h3>What We Do</h3>
+            <p>Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Praesent commodo cursus magna, vel scelerisque nisl consectetur et.</p>
+
+            <p>Nullam quis risus eget urna mollis ornare vel eu leo. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nullam id dolor id nibh ultricies vehicula ut id elit. Donec ullamcorper nulla non metus auctor fringilla.</p>
+
+            <h3>Our Team</h3>
+            <div class="team-grid">
+                <div class="team-member">
+                    <img src="https://picsum.photos/200/200?random=10" alt="Team member">
+                    <h4>John Doe</h4>
+                    <p>CEO & Founder</p>
+                </div>
+                <div class="team-member">
+                    <img src="https://picsum.photos/200/200?random=11" alt="Team member">
+                    <h4>Jane Smith</h4>
+                    <p>CTO</p>
+                </div>
+                <div class="team-member">
+                    <img src="https://picsum.photos/200/200?random=12" alt="Team member">
+                    <h4>Bob Johnson</h4>
+                    <p>Lead Developer</p>
+                </div>
+            </div>
+
+            <h3>Company History</h3>
+            <p>Aenean lacinia bibendum nulla sed consectetur. Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Donec sed odio dui. Donec ullamcorper nulla non metus auctor fringilla.</p>
+
+            <p>Cras mattis consectetur purus sit amet fermentum. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Nullam quis risus eget urna mollis ornare vel eu leo. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.</p>
+
+            <button onclick="navigateWithDelay()">Go to Gallery</button>
+        </section>
+
+        <aside class="sidebar">
+            <div class="widget">
+                <h4>Contact Info</h4>
+                <p>Email: info@testwebsite.com</p>
+                <p>Phone: (555) 123-4567</p>
+            </div>
+        </aside>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Test Website. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        function navigateWithDelay() {
+            // Simulate some processing before navigation
+            let result = 0;
+            for (let i = 0; i < 5000000; i++) {
+                result += Math.sqrt(i);
+            }
+            window.location.href = 'gallery.html';
+        }
+    </script>
+</body>
+</html>
+
